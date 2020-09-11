@@ -10,7 +10,7 @@ If you have to create alot new projects with the same setup you can use this tem
 
 ```
 1. run npm install
-2. create your project template in the dist/templates directory. I have already added a sample-project in there for guidance.
+2. create your project template in the src/templates directory. I have already added a sample-project in there for guidance.
 3. Once you have added your "base project" run npm build.
 4. run npm start to test if everything works.
 5. choose your project to use and name your new project.
