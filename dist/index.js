@@ -66,6 +66,9 @@ const SKIP_FILES = ['node_modules', '.template.json'];
 function createDirectoryContents(templatePath, projectName) {
     // read all files/folders (1 level) from template folder
     const filesToCreate = fs.readdirSync(templatePath);
+    let variables = {
+        projectName
+    };
     // loop each file/folder
     filesToCreate.forEach(file => {
         const origFilePath = path.join(templatePath, file);
@@ -77,6 +80,10 @@ function createDirectoryContents(templatePath, projectName) {
         if (stats.isFile()) {
             // read file content and transform it using template engine
             let contents = fs.readFileSync(origFilePath, 'utf8');
+            for (let prop in variables) {
+                if (variables.hasOwnProperty(prop))
+                    contents = contents.split(`{${prop}}`).join(variables[prop]);
+            }
             contents = template.render(contents, { projectName });
             // write file to destination folder
             const writePath = path.join(CURR_DIR, projectName, file);

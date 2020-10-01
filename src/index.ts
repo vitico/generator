@@ -9,17 +9,17 @@ import * as shell from 'shelljs';
 
 const CHOICES = fs.readdirSync(path.join(__dirname, 'templates'));
 const QUESTIONS = [
-{
-    name: 'template',
-    type: 'list',
-    message: 'What template would you like to use?',
-    choices: CHOICES
-},
-{
-    name: 'name',
-    type: 'input',
-    message: 'Please input a new project name:'
-}];
+    {
+        name: 'template',
+        type: 'list',
+        message: 'What template would you like to use?',
+        choices: CHOICES
+    },
+    {
+        name: 'name',
+        type: 'input',
+        message: 'Please input a new project name:'
+    }];
 
 export interface CliOptions {
     projectName: string
@@ -29,7 +29,6 @@ export interface CliOptions {
 }
 
 const CURR_DIR = process.cwd();
-
 inquirer.prompt(QUESTIONS).then(answers => {
     const projectChoice = answers['template'];
     const projectName = answers['name'];
@@ -37,7 +36,7 @@ inquirer.prompt(QUESTIONS).then(answers => {
     const templatePath = path.join(__dirname, 'templates', projectChoice);
     //@ts-ignore
     const tartgetPath = path.join(CURR_DIR, projectName);
-    
+
     const options: CliOptions = {
         //@ts-ignore
         projectName,
@@ -63,7 +62,7 @@ function createProject(projectPath: string) {
         return false;
     }
     fs.mkdirSync(projectPath);
-    
+
     return true;
 }
 
@@ -72,20 +71,27 @@ const SKIP_FILES = ['node_modules', '.template.json'];
 function createDirectoryContents(templatePath: string, projectName: string) {
     // read all files/folders (1 level) from template folder
     const filesToCreate = fs.readdirSync(templatePath);
+    let variables: any = {
+        projectName
+    };
     // loop each file/folder
     filesToCreate.forEach(file => {
         const origFilePath = path.join(templatePath, file);
-        
+
         // get stats about the current file
         const stats = fs.statSync(origFilePath);
-    
+
         // skip files that should not be copied
         if (SKIP_FILES.indexOf(file) > -1) return;
-        
+
         if (stats.isFile()) {
             // read file content and transform it using template engine
             let contents = fs.readFileSync(origFilePath, 'utf8');
-            contents = template.render(contents, { projectName });
+            for (let prop in variables) {
+                if (variables.hasOwnProperty(prop))
+                    contents = contents.split(`{${prop}}`).join(variables[prop]);
+            }
+            contents = template.render(contents, {projectName});
             // write file to destination folder
             const writePath = path.join(CURR_DIR, projectName, file);
             fs.writeFileSync(writePath, contents, 'utf8');
@@ -107,7 +113,7 @@ function postProcess(options: CliOptions) {
             return false;
         }
     }
-    
+
     return true;
 }
 
